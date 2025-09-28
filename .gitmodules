@@ -1,0 +1,3 @@
+[submodule "external_libs/AP2"]
+	path = external_libs/AP2
+	url = https://github.com/google-agentic-commerce/AP2.git

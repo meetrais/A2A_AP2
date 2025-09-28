@@ -1,0 +1,17 @@
+[project]
+name = "ap2-multi-agent-system"
+version = "0.1.0"
+description = "Multi-Agent System implementing AP2 Payment Protocol with Google ADK"
+requires-python = ">=3.9"
+
+dependencies = [
+    "google-adk>=0.2.0",
+    "requests>=2.31.0", 
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    "pydantic>=2.5.0"
+]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
