@@ -1,204 +1,236 @@
-# A2A/AP2 Multi-Agent Shopping System
+# A2A and AP2 Based Multi-Agent System
 
-A sophisticated multi-agent shopping system implementing Agent-to-Agent (A2A) and Agent Payment Protocol (AP2) with Google ADK-powered LLM capabilities.
+A sophisticated multi-agent system implementing the Agent Payment Protocol (AP2) with Google ADK-powered AI agents for autonomous shopping, payment processing, and merchant services.
+
+## Overview
+
+This project demonstrates a complete AP2 protocol implementation using three AI agents that communicate via the Agent-to-Agent (A2A) protocol to handle the entire e-commerce flow from product search to payment completion.
+
+## Architecture
+
+### Core Agents
+
+1. **Shopping Agent** (`shopping_agent/agent.py`)
+   - Handles user requests and orchestrates the entire shopping flow
+   - Implements AP2 Intent Mandates and Cart Mandates
+   - Manages A2A communication with merchant and credentials provider
+   - Processes the complete 13-step AP2 payment flow
+
+2. **Merchant Agent** (`merchant_agent/agent.py`)
+   - Manages product catalog and inventory
+   - Validates cart items and pricing
+   - Signs cart mandates with cryptographic guarantees
+   - Handles order fulfillment and tracking
+
+3. **Credentials Provider Agent** (`credentials_provider/agent.py`)
+   - Manages user payment credentials securely
+   - Handles payment authorization and OTP verification
+   - Processes payment capture and settlement
+   - Maintains transaction history and audit trails
+
+### Protocol Implementation
+
+#### A2A Protocol Features
+- Structured message format with protocol versioning
+- Agent discovery and capability exchange
+- Session establishment with cryptographic signatures
+- Secure message routing between agents
+
+#### AP2 Protocol Features
+- Intent Mandates for human-not-present purchases
+- Cart Mandates with merchant fulfillment guarantees
+- Payment Mandates with secure credential tokenization
+- Complete audit trail and transaction logging
+
+## Dependencies
+
+```bash
+google-adk>=0.2.0      # Google Agent Development Kit
+requests>=2.31.0       # HTTP client library
+fastapi>=0.104.0       # Web framework (for future API endpoints)
+uvicorn>=0.24.0        # ASGI server
+pydantic>=2.5.0        # Data validation
+```
+
+## Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/meetrais/A2A_AP2.git
+   cd A2A_AP2
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   # Create .env file with your Google API key
+   echo "GOOGLE_API_KEY=your_google_api_key_here" > .env
+   ```
+
+## Usage
+
+### Running Individual Agents
+
+Each agent can be run independently using the Google ADK:
+
+```python
+from shopping_agent.agent import root_agent as shopping_agent
+from merchant_agent.agent import root_agent as merchant_agent
+from credentials_provider.agent import root_agent as credentials_provider
+
+# Start shopping agent conversation
+response = shopping_agent.chat("I want to buy a laptop")
+```
+
+### Complete AP2 Flow
+
+The shopping agent implements the full 13-step AP2 protocol:
+
+1. `transfer_to_agent` - Establish A2A connection with merchant
+2. `create_intent_mandate` - Create purchase authorization
+3. `find_products` - Search merchant catalog via A2A
+4. `update_chosen_cart_mandate` - Select specific product
+5. `transfer_to_agent` - Connect to credentials provider
+6. `get_shipping_address` - Retrieve user address via A2A
+7. `update_cart` - Calculate totals and shipping
+8. `get_payment_methods` - Get user payment options
+9. `get_payment_credential_token` - Generate secure token
+10. `create_payment_mandate` - Create payment authorization
+11. `sign_mandates_on_user_device` - Cryptographic signing
+12. `send_signed_payment_mandate_to_credentials_provider` - A2A transmission
+13. `initiate_payment_with_otp` - Complete with OTP verification
 
 ## Features
 
-### Core Capabilities
-- **A2A Protocol Implementation**: Structured agent-to-agent messaging with session tracking
-- **AP2 Protocol Integration**: Agent payment protocol with session management
-- **Google ADK Integration**: Advanced LLM capabilities for intelligent decision making
-- **Multi-Agent Architecture**: Shopping agents, merchant agents, and payment processors
-- **Real-time Processing**: Asynchronous message handling and transaction processing
-
-### Interactive Modes
-1. **Interactive Chat Interface** (`chat_interface.py`) - Real-time conversation with the shopping assistant
-2. **Demo Mode** (`main.py`) - Automated demonstration scenarios
-3. **Test Mode** (`test_demo.py`) - Simplified testing and validation
-
-## Quick Start
-
-### Prerequisites
-```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up environment variables
-cp .env.example .env
-# Add your GOOGLE_API_KEY to .env
-```
-
-### Interactive Chat Mode (Recommended)
-```bash
-python chat_interface.py
-```
-
-**Features:**
-- Real-time chat with AI shopping assistant
+### Shopping Agent Capabilities
 - Natural language product search
-- Multi-merchant comparison
-- Interactive commands (`/help`, `/status`, `/inventory`, `/quit`)
-- Session-based shopping experience
+- Multi-merchant comparison and selection
+- Complete AP2 payment flow automation
+- A2A protocol communication
+- Cryptographic mandate signing
+- OTP verification handling
 
-**Example Usage:**
-```
-🧑 You: I need a laptop for programming under $1000
-🤖 Assistant: 🤔 Processing your request...
-🤖 Assistant: I found several great options for programming laptops under $1000...
+### Merchant Agent Capabilities
+- Product catalog management (laptops, phones, tablets)
+- Real-time inventory validation
+- Cart mandate signing with fulfillment guarantees
+- Inventory reservation during checkout
+- Order fulfillment and tracking
 
-🧑 You: /inventory
-🤖 Assistant: 🏪 **Available Products**
-...
+### Credentials Provider Capabilities
+- Secure payment method management
+- User profile and address management
+- Payment authorization with risk scoring
+- OTP generation and verification
+- Transaction capture and settlement
+- Complete audit trail maintenance
 
-🧑 You: /quit
-🤖 Assistant: 👋 Thank you for using our shopping service! Goodbye!
-```
+## Sample Product Catalog
 
-### Demo Mode
-```bash
-python main.py
-```
-Runs automated scenarios demonstrating the complete A2A/AP2 workflow.
+The merchant agent provides these product categories:
 
-### Test Mode
-```bash
-python test_demo.py
-```
-Simplified testing of core functionality.
+**Laptops:**
+- High-performance laptop ($1,599.99)
+- Mid-range business laptop ($1,129.50)
+- Entry-level student laptop ($789.00)
 
-## System Architecture
+**Mobile Devices:**
+- Flagship smartphone ($999.99)
+- Professional tablet ($649.99)
 
-### Agents
-- **Shopping Agent**: Handles user requests, coordinates with merchants, manages transactions
-- **Merchant Agents**: Provide product information, pricing, and availability
-- **Payment Processor**: Handles payment processing and transaction completion
+## Payment Methods Supported
 
-### Protocols
-- **A2A (Agent-to-Agent)**: Message types include IntentMandate, CartMandate, ContactAddress, PaymentMandate, PaymentResult
-- **AP2 (Agent Payment Protocol)**: Session management, message history, participant tracking
+**Credit Cards:**
+- American Express
+- Visa
+- Mastercard
 
-### LLM Integration
-- **Google ADK**: Powers intelligent product search, merchant selection, and natural language responses
-- **Fallback Responses**: System continues to function without API keys using predefined responses
+**Bank Transfers:**
+- ACH payments
+- Direct bank transfers
 
-## Available Merchants
+## Security Features
 
-1. **TechMart Electronics** (⭐ 4.5/5, 🚚 2-3 days)
-   - Gaming laptops, smartphones, tablets, headphones, monitors
+### Cryptographic Security
+- SHA-256 signatures for all mandates
+- Secure credential tokenization
+- A2A message encryption
+- User device signing
 
-2. **Budget Electronics Co** (⭐ 4.0/5, 🚚 5-7 days)
-   - Affordable electronics and budget-friendly options
+### Payment Security
+- Multi-factor authentication (OTP)
+- Risk scoring and fraud detection
+- PCI DSS compliant simulation
+- Complete transaction audit trails
 
-3. **Premium Gadgets** (⭐ 4.8/5, 🚚 1-2 days)
-   - High-end devices including MacBooks, iPhones, iPads
-
-## Chat Commands
-
-| Command | Description |
-|---------|-------------|
-| `/help` | Show available commands and usage examples |
-| `/status` | Display system status and statistics |
-| `/inventory` | View available products from all merchants |
-| `/quit` | Exit the chat interface |
-
-## Message Flow
-
-```
-1. User Request → Shopping Agent (IntentMandate via A2A)
-2. Shopping Agent → Merchant Agents (CartMandate via A2A)
-3. Merchant Agents → Shopping Agent (ContactAddress via A2A)
-4. Shopping Agent → Best Merchant (cart update)
-5. Shopping Agent → Payment Processor (PaymentMandate via A2A)
-6. Payment Processor → Shopping Agent (PaymentResult via A2A)
-7. Shopping Agent → User (completion notification)
-```
-
-## Configuration
-
-### Environment Variables
-```bash
-# Required for LLM functionality
-GOOGLE_API_KEY=your_google_api_key_here
-```
-
-### Dependencies
-- **google-adk**: Google Agent Development Kit for LLM capabilities
-- **ap2**: Official Google AP2 library
-- **python-dotenv**: Environment variable management
-- **asyncio**: Asynchronous programming support
+### A2A Protocol Security
+- Message authentication and integrity
+- Session-based communication
+- Agent capability verification
+- Secure routing and delivery
 
 ## Development
 
-### File Structure
+### Project Structure
 ```
-├── chat_interface.py      # Interactive chat interface
-├── main.py               # Demo scenarios
-├── test_demo.py          # Simple testing
-├── shopping_agent.py     # Shopping agent implementation
-├── merchant_agent.py     # Merchant agent implementation
-├── payment_processor.py  # Payment processing agent
-├── protocols.py          # A2A/AP2 protocol implementations
-├── ap2_components.py     # Custom AP2 components
-├── requirements.txt      # Python dependencies
-└── .env                 # Environment variables
+├── shopping_agent/
+│   ├── __init__.py
+│   └── agent.py           # Main shopping agent with AP2 flow
+├── merchant_agent/
+│   ├── __init__.py
+│   └── agent.py           # Product catalog and fulfillment
+├── credentials_provider/
+│   ├── __init__.py
+│   └── agent.py           # Payment processing and credentials
+├── requirements.txt       # Python dependencies
+├── pyproject.toml        # Project configuration
+└── .env                  # Environment variables
 ```
 
-### Key Features Implemented
-- ✅ Clean code without unnecessary debug output
-- ✅ Official Google AP2 library integration
-- ✅ Google ADK for LLM capabilities
-- ✅ Interactive chat interface
-- ✅ Multi-agent communication
-- ✅ Session-based transaction tracking
-- ✅ Asynchronous processing
-- ✅ Error handling and fallback responses
+### Key Implementation Details
 
-## Usage Examples
+**A2A Message Format:**
+```json
+{
+  "protocol": "A2A",
+  "version": "1.0",
+  "message_id": "uuid",
+  "sender_agent": "shopping_agent",
+  "receiver_agent": "merchant_agent",
+  "timestamp": "ISO-8601",
+  "payload": {...},
+  "security": {"signature": "..."}
+}
+```
 
-### Shopping Queries
-- "I need a laptop for gaming under $1500"
-- "Show me the cheapest smartphones available"
-- "I want wireless headphones with noise canceling"
-- "Looking for a professional tablet for design work"
-- "What monitors do you have for programming?"
+**AP2 Mandate Structure:**
+```json
+{
+  "ap2_protocol": "intent_mandate",
+  "mandate_id": "uuid",
+  "user_id": "user_identifier",
+  "item_description": "product description",
+  "expires": "ISO-8601",
+  "user_signature": "cryptographic_hash"
+}
+```
 
-### System Commands
-- "/status" - Check system health
-- "/inventory" - Browse all available products
-- "/help" - Get assistance and command list
+## Testing
 
-## Technical Details
+The system includes mock data and simulation for:
+- Product inventory and pricing
+- User payment methods and addresses
+- Transaction processing and settlement
+- OTP verification (demo code: "123")
 
-### A2A Protocol Features
-- Unique message IDs and timestamps
-- Session-based conversation tracking
-- Reliable delivery and acknowledgment
-- Structured message types for different transaction phases
+## License
 
-### AP2 Protocol Features
-- Payment processing and transaction management
-- Message history and audit trail
-- Participant tracking and session lifecycle
-- Integration with official Google AP2 library
+This project is licensed under the terms specified in the LICENSE file.
 
-### LLM Capabilities
-- Natural language intent parsing
-- Intelligent product matching
-- Merchant selection optimization
-- Conversational response generation
+## Contributing
 
-## Troubleshooting
-
-### Common Issues
-1. **Missing Google API Key**: System will use fallback responses
-2. **Network Issues**: Check internet connection for LLM features
-3. **Import Errors**: Ensure all dependencies are installed via `pip install -r requirements.txt`
-
-### Getting Help
-- Use `/help` command in chat mode
-- Check system status with `/status`
-- Review error messages for specific issues
-
----
-
-🛒 **Happy Shopping with A2A/AP2 Multi-Agent System!** 🤖
+This is a demonstration project showcasing AP2 protocol implementation with Google ADK. Contributions for educational and research purposes are welcome.
