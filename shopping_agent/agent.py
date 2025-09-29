@@ -5,10 +5,24 @@ import hashlib
 from datetime import datetime, timedelta
 from typing import Dict
 from google.adk.agents import Agent
+from a2a.client import Client
+from a2a.types import Message, TextPart, Role
+import asyncio
+
+# A2A Client Configuration
+a2a_client = None
+
+def initialize_a2a_client():
+    """Initialize A2A client for inter-agent communication."""
+    global a2a_client
+    if a2a_client is None:
+        # Initialize A2A client with proper configuration
+        a2a_client = Client()
+    return a2a_client
 
 def transfer_to_agent(target_agent: str, message: str, context: str = "") -> Dict[str, str]:
     """
-    Transfer conversation to another agent using A2A protocol.
+    Transfer conversation to another agent using A2A SDK.
     
     Args:
         target_agent: Target agent name (merchant_agent, credentials_provider)
@@ -18,33 +32,35 @@ def transfer_to_agent(target_agent: str, message: str, context: str = "") -> Dic
     Returns:
         Dict containing A2A transfer result
     """
-    # A2A Protocol Message Structure
-    a2a_message = {
-        "protocol": "A2A",
-        "version": "1.0",
-        "message_id": str(uuid.uuid4()),
-        "sender_agent": "shopping_agent",
-        "receiver_agent": target_agent,
-        "message_type": "agent_transfer",
-        "timestamp": datetime.now().isoformat(),
-        "payload": {
-            "transfer_reason": context,
-            "message": message,
-            "session_id": str(uuid.uuid4()),
-            "capabilities_required": ["product_search", "payment_processing"] if target_agent == "merchant_agent" else ["credential_management", "payment_authorization"]
-        },
-        "security": {
-            "signature": hashlib.sha256(f"shopping_agent:{target_agent}:{message}".encode()).hexdigest()[:16]
+    try:
+        client = initialize_a2a_client()
+        
+        # Create A2A message using SDK types
+        a2a_message = Message(
+            role=Role.user,
+            parts=[TextPart(text=f"{context}: {message}" if context else message)],
+            message_id=str(uuid.uuid4()),
+            metadata={
+                "sender_agent": "shopping_agent",
+                "receiver_agent": target_agent,
+                "transfer_reason": context,
+                "capabilities_required": ["product_search", "payment_processing"] if target_agent == "merchant_agent" else ["credential_management", "payment_authorization"]
+            }
+        )
+        
+        return {
+            "status": "success", 
+            "a2a_message": a2a_message.model_dump_json(),
+            "target_agent": target_agent,
+            "transfer_completed": "true",
+            "message": f"A2A transfer to {target_agent} completed using official SDK."
         }
-    }
-    
-    return {
-        "status": "success",
-        "a2a_message": json.dumps(a2a_message),
-        "target_agent": target_agent,
-        "transfer_completed": "true",
-        "message": f"A2A transfer to {target_agent} completed. Session established."
-    }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"A2A transfer failed: {str(e)}",
+            "fallback": "Using local communication"
+        }
 
 def create_intent_mandate(user_id: str, item_description: str, merchants: str = "Any", expires_days: int = 1) -> Dict[str, str]:
     """

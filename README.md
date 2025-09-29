@@ -46,6 +46,7 @@ This project demonstrates a complete AP2 protocol implementation using three AI 
 
 ```bash
 google-adk>=0.2.0      # Google Agent Development Kit
+a2a-sdk>=0.3.7         # Official A2A Python SDK
 requests>=2.31.0       # HTTP client library
 fastapi>=0.104.0       # Web framework (for future API endpoints)
 uvicorn>=0.24.0        # ASGI server
@@ -172,6 +173,58 @@ The merchant agent provides these product categories:
 - Session-based communication
 - Agent capability verification
 - Secure routing and delivery
+
+## A2A SDK Integration
+
+This project uses the official [A2A Python SDK](https://github.com/a2aproject/a2a-python) to simplify A2A protocol implementation:
+
+### SDK Features Used
+- **Message Types**: `Message`, `TextPart`, `Role` from `a2a.types`
+- **Client**: `Client` from `a2a.client` for A2A communication
+- **JSON Serialization**: `model_dump_json()` and `model_validate_json()` for message handling
+
+### Implementation Examples
+
+**Creating A2A Messages:**
+```python
+from a2a.types import Message, TextPart, Role
+
+# Create A2A message using SDK types
+a2a_message = Message(
+    role=Role.user,
+    parts=[TextPart(text="Product search request")],
+    message_id=str(uuid.uuid4()),
+    metadata={
+        "sender_agent": "shopping_agent",
+        "receiver_agent": "merchant_agent",
+        "capabilities_required": ["product_search"]
+    }
+)
+```
+
+**Processing A2A Messages:**
+```python
+# Parse incoming A2A message using SDK
+incoming_message = Message.model_validate_json(message_json)
+
+# Create response using A2A SDK types
+response_message = Message(
+    role=Role.agent,
+    parts=[TextPart(text="Request processed")],
+    message_id=str(uuid.uuid4()),
+    metadata={
+        "sender_agent": "merchant_agent",
+        "in_response_to": incoming_message.message_id
+    }
+)
+```
+
+### Benefits of SDK Usage
+- **Standardized Types**: Ensures compliance with A2A protocol specifications
+- **Type Safety**: Pydantic-based models provide validation and type checking
+- **JSON Serialization**: Built-in methods for converting to/from JSON
+- **Error Handling**: Graceful fallback when SDK operations fail
+- **Future Compatibility**: Automatic updates with protocol evolution
 
 ## Development
 

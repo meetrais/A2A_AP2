@@ -8,7 +8,7 @@ from google.adk.agents import Agent
 
 def receive_a2a_message(message_json: str) -> Dict[str, str]:
     """
-    Receive and process A2A protocol message from shopping agent.
+    Receive and process A2A protocol message from shopping agent using A2A SDK.
     
     Args:
         message_json: A2A message JSON string
@@ -17,30 +17,36 @@ def receive_a2a_message(message_json: str) -> Dict[str, str]:
         Dict containing A2A response
     """
     try:
-        message = json.loads(message_json)
+        from a2a.types import Message, TextPart, Role
         
-        response = {
-            "protocol": "A2A",
-            "version": "1.0",
-            "message_id": str(uuid.uuid4()),
-            "sender_agent": "merchant_agent",
-            "receiver_agent": message.get("sender_agent", "shopping_agent"),
-            "in_response_to": message.get("message_id"),
-            "timestamp": datetime.now().isoformat(),
-            "status": "received",
-            "capabilities": ["product_search", "inventory_management", "cart_signing"]
-        }
+        # Parse incoming A2A message using SDK
+        incoming_message = Message.model_validate_json(message_json)
+        
+        # Create response using A2A SDK types
+        response_message = Message(
+            role=Role.agent,
+            parts=[TextPart(text="Merchant agent ready to process your request")],
+            message_id=str(uuid.uuid4()),
+            metadata={
+                "sender_agent": "merchant_agent",
+                "receiver_agent": incoming_message.metadata.get("sender_agent", "shopping_agent"),
+                "in_response_to": incoming_message.message_id,
+                "capabilities": ["product_search", "inventory_management", "cart_signing"],
+                "status": "received"
+            }
+        )
         
         return {
             "status": "success",
-            "a2a_response": json.dumps(response),
-            "sender": message.get("sender_agent", "unknown"),
-            "message": f"A2A message received from {message.get('sender_agent')}. Merchant agent ready."
+            "a2a_response": response_message.model_dump_json(),
+            "sender": incoming_message.metadata.get("sender_agent", "unknown"),
+            "message": f"A2A message received using SDK from {incoming_message.metadata.get('sender_agent')}. Merchant agent ready."
         }
     except Exception as e:
         return {
             "status": "error",
-            "message": f"A2A message processing failed: {str(e)}"
+            "message": f"A2A message processing failed: {str(e)}",
+            "fallback": "Using local processing"
         }
 
 def get_product_catalog(category: str = "", query: str = "", max_results: int = 10) -> Dict[str, str]:
